@@ -106,13 +106,14 @@ export function describe(st) {
     { step: 2, label: 'Drip', value: dr.name },
     { step: 3, label: 'Dekor', value: tops },
     { step: 3, label: 'Şam', value: st.candles ? `${st.candles} ədəd` : 'Yoxdur' },
-    { step: 4, label: 'Foto çap', value: st.image ? 'Bəli — şəkli ayrıca göndərirəm' : 'Yoxdur' },
+    { step: 4, label: 'Foto çap', value: st.image ? 'Bəli — şəkil sifarişə əlavə olunub' : 'Yoxdur' },
     { step: 5, label: 'Yazı', value: st.text.trim() ? `“${st.text.trim()}” — ${font.name}, ${tc}` : 'Yoxdur' },
     ...(st.notes.trim() ? [{ step: 3, label: 'Əlavə istək', value: st.notes.trim() }] : []),
   ];
 }
 
-export function orderMessage(st, rich = true) {
+/** links: [{ label, url }] — yüklənmiş şəkillərin linkləri (varsa mesajın sonuna əlavə olunur). */
+export function orderMessage(st, rich = true, links = []) {
   const b = s => (rich ? `*${s}*` : s);
   const c = st.customer;
   return [
@@ -127,6 +128,7 @@ export function orderMessage(st, rich = true) {
     c.method === 'delivery' ? `🚚 ${b('Çatdırılma:')} ${c.address}` : `🏪 ${b('Təhvil:')} Mağazadan götürəcəyəm`,
     '━━━━━━━━━━━━━━',
     `💰 ${b('Təxmini qiymət:')} ${money(total(st))}`,
+    ...(links.length ? ['━━━━━━━━━━━━━━', ...links.map(l => `🖼 ${b(l.label + ':')} ${l.url}`)] : []),
   ].join('\n');
 }
 

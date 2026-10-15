@@ -2,7 +2,7 @@ import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } fro
 import { DATA, DETAILS_STEP, IMAGE_STEP, REVIEW_STEP, STEPS, TEXT_STEP } from './lib/data.js';
 import { byId, fmtKg, money, orderMessage, servings, sliceMarkup, total, validateDetails } from './lib/utils.js';
 import { defaultState, useCakeState } from './lib/useCakeState.js';
-import { dataUrlToFile, downloadBlob, renderPng, sendEmail, sendWhatsApp } from './lib/send.js';
+import { dataUrlToFile, downloadBlob, orderFiles, renderPng, sendEmail, sendWhatsApp } from './lib/send.js';
 import { STEP_COMPONENTS } from './components/Steps.jsx';
 
 const Cake3D = lazy(() => import('./cake/Cake3D.jsx'));
@@ -90,18 +90,40 @@ export default function App() {
 
   const actions = {
     busy, canShare,
-    whatsapp: () => setSent(sendWhatsApp(state)),
-    email: async () => { setBusy(true); try { setSent(await sendEmail(state)); } finally { setBusy(false); } },
+    whatsapp: async () => {
+      setBusy('wa');
+      try { setSent(await sendWhatsApp(glRef.current, state)); } finally { setBusy(false); }
+    },
+    email: async () => {
+      setBusy('mail');
+      try {
+        const r = await sendEmail(glRef.current, state);
+        setSent(r);
+        if (r === 'auto') toast('Sifariş şəkillərlə birlikdə göndərildi');
+      } finally { setBusy(false); }
+    },
     download: async () => { try { downloadBlob(await shot(), `tort-${state.orderId}.png`); } catch (e) { toast(e.message); } },
     downloadPhoto: async () => {
       const f = await dataUrlToFile(state.image.src, `tort-foto-${state.orderId}`);
       downloadBlob(f, `tort-foto-${state.orderId}.${f.type.split('/')[1] || 'jpg'}`);
     },
+    // Bütün sifariş şəkillərini bir kliklə yükləyir
+    downloadAll: async () => {
+      const files = await orderFiles(glRef.current, state);
+      files.forEach(({ file }, i) => setTimeout(() => downloadBlob(file, file.name), i * 400));
+      toast(`${files.length} şəkil yükləndi — mesaja əlavə edin`);
+    },
     share: async () => {
       try {
-        const files = [new File([await shot()], `tort-${state.orderId}.png`, { type: 'image/png' })];
-        if (state.image) files.push(await dataUrlToFile(state.image.src, `tort-foto-${state.orderId}.${state.image.src.startsWith('data:image/png') ? 'png' : 'jpg'}`));
+        const files = (await orderFiles(glRef.current, state)).map(f => f.file);
         await navigator.share({ files, text: orderMessage(state, true) });
+      } catch { /* ləğv edildi */ }
+    },
+    // WhatsApp-da sifariş mətni artıq gedib — burada yalnız şəkilləri paylaşırıq
+    shareImages: async () => {
+      try {
+        const files = (await orderFiles(glRef.current, state)).map(f => f.file);
+        await navigator.share({ files, title: `Tort sifarişi #${state.orderId}` });
       } catch { /* ləğv edildi */ }
     },
     copy: async () => {

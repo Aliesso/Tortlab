@@ -8,7 +8,10 @@ export const CONFIG = {
   currency: '₼',
   // true: email brauzerdən birbaşa FormSubmit.co ilə göndərilir (ilk dəfə təsdiq maili gəlir)
   // false: istifadəçinin mail proqramı açılır
-  formSubmit: false,
+  formSubmit: true,
+  // WhatsApp mesajına şəkil linkləri əlavə etmək üçün pulsuz ImgBB API açarı (https://api.imgbb.com).
+  // Boş olarsa, WhatsApp açılandan sonra müştəriyə şəkilləri paylaşmaq/yükləmək düymələri göstərilir.
+  imgbbKey: '',
 };
 
 export const DATA = {

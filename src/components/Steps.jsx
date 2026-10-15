@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { CONFIG, DATA, PRESETS, SCATTER } from '../lib/data.js';
 import { byId, describe, fmtDate, fmtKg, frostName, money, priceLines, readImageFile, servings, total } from '../lib/utils.js';
 import DateTimePicker from './DateTimePicker.jsx';
+import { emailLinks } from '../lib/send.js';
 import { defaultImage } from '../lib/useCakeState.js';
 import { makeShape } from '../cake/shapes.js';
 import { Group, Opt, Plus, Range, Swatch } from './ui.jsx';
@@ -398,35 +399,64 @@ function StepReview({ state, goTo, actions, sent }) {
       </div>
 
       <div className="send">
-        <button type="button" className="btn btn-wa" onClick={actions.whatsapp}>
+        <button type="button" className="btn btn-wa" onClick={actions.whatsapp} disabled={!!actions.busy}>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.6-1.2A9 9 0 1 0 12 3z" /><path d="M9 8.5c0 3.5 3 6.5 6.5 6.5l1-1.6-2-1-1 .9a5 5 0 0 1-2.8-2.8l.9-1-1-2z" className="fill" /></svg>
-          WhatsApp ilə göndər
+          {actions.busy === 'wa' ? 'Şəkillər yüklənir…' : 'WhatsApp ilə göndər'}
         </button>
-        <button type="button" className="btn btn-dark" onClick={actions.email} disabled={actions.busy}>
+        <button type="button" className="btn btn-dark" onClick={actions.email} disabled={!!actions.busy}>
           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5" /><path d="M4 7l8 6 8-6" /></svg>
-          {actions.busy ? 'Göndərilir…' : 'Email ilə göndər'}
+          {actions.busy === 'mail' ? 'Şəkillərlə göndərilir…' : 'Email ilə göndər'}
         </button>
+        <div className="send-files">
+          <span className="send-files-label">Sifarişlə birlikdə gedəcək şəkillər:</span>
+          <span className="send-file">🎂 3D dizayn</span>
+          {state.image && <span className="send-file"><img src={state.image.src} alt="" />Çap fotosu</span>}
+        </div>
         <div className="send-extra">
           <button type="button" className="link" onClick={actions.download}>⬇ 3D dizayn şəklini yüklə</button>
           {state.image && <button type="button" className="link" onClick={actions.downloadPhoto}>⬇ Foto faylını yüklə</button>}
           {actions.canShare && <button type="button" className="link" onClick={actions.share}>↗ Şəkillərlə paylaş</button>}
           <button type="button" className="link" onClick={actions.copy}>⧉ Mətni kopyala</button>
         </div>
-        <p className="fine">
-          Qiymət təxminidir — dəqiq məbləği qənnadçımız sizinlə əlaqə saxlayaraq təsdiqləyəcək.
-          {state.image ? ' WhatsApp mesajına çap ediləcək fotonu və 3D dizayn şəklini də əlavə edin.' : ' WhatsApp-a 3D dizayn şəklini də əlavə etməyiniz tövsiyə olunur.'}
-        </p>
+        <p className="fine">Qiymət təxminidir — dəqiq məbləği qənnadçımız sizinlə əlaqə saxlayaraq təsdiqləyəcək.</p>
       </div>
 
-      {sent && (
+      {sent === 'wa-attach' && (
+        <div className="sent card">
+          <div className="sent-ico warn">🖼</div>
+          <h3>Son addım: şəkilləri də göndərin</h3>
+          <p>WhatsApp-da sifariş mətni hazırdır — onu göndərin. Sonra eyni söhbətə {state.image ? '3D dizaynı və çap fotosunu' : '3D dizayn şəklini'} əlavə edin.</p>
+          <div className="fallback-actions">
+            {actions.canShare
+              ? <button type="button" className="btn btn-wa" onClick={actions.shareImages}>Şəkilləri WhatsApp-a paylaş</button>
+              : <button type="button" className="btn btn-dark" onClick={actions.downloadAll}>⬇ Şəkilləri yüklə</button>}
+          </div>
+          <p className="fine">{actions.canShare
+            ? 'Açılan siyahıdan WhatsApp-ı və bizim söhbəti seçin.'
+            : 'Şəkillər kompüterinizə yüklənəcək — WhatsApp-da 📎 düyməsi ilə əlavə edin.'}</p>
+          <button type="button" className="btn btn-ghost" onClick={actions.reset}>Yeni tort yarat</button>
+        </div>
+      )}
+      {sent === 'fallback' && (
+        <div className="sent card">
+          <div className="sent-ico warn">✉</div>
+          <h3>Emaili özünüz göndərin</h3>
+          <p>Avtomatik göndərmə alınmadı. Sifariş mətni hazırdır — aşağıdakı düymələrdən biri ilə açıb “Göndər”ə basın. Şəkilləri yükləyib mailə qoşun.</p>
+          <div className="fallback-actions">
+            <a className="btn btn-dark" href={emailLinks(state).gmail} target="_blank" rel="noopener noreferrer">Gmail-də aç</a>
+            <a className="btn btn-ghost" href={emailLinks(state).mailto}>Mail proqramında aç</a>
+            <button type="button" className="btn btn-ghost" onClick={actions.downloadAll}>⬇ Şəkilləri yüklə</button>
+          </div>
+          <p className="fine">Mətni kopyalayıb {CONFIG.email} ünvanına istənilən mail xidmətindən də göndərə bilərsiniz.</p>
+        </div>
+      )}
+      {(sent === 'wa' || sent === 'auto') && (
         <div className="sent card">
           <div className="sent-ico">✓</div>
           <h3>Sifarişiniz hazırdır!</h3>
           <p>{sent === 'wa'
-            ? 'WhatsApp açıldı — mesajı göndərməyi unutmayın. Qənnadçımız tezliklə sizinlə əlaqə saxlayacaq.'
-            : sent === 'auto'
-              ? 'Sifarişiniz emailə göndərildi. Qənnadçımız tezliklə sizinlə əlaqə saxlayacaq.'
-              : 'Mail proqramınız açıldı — “Göndər” düyməsini sıxmağı unutmayın.'}</p>
+            ? 'WhatsApp açıldı — mesajı göndərməyi unutmayın. Şəkillərin linkləri mesaja əlavə olunub.'
+            : 'Sifarişiniz şəkillərlə birlikdə emailə göndərildi. Qənnadçımız tezliklə sizinlə əlaqə saxlayacaq.'}</p>
           <button type="button" className="btn btn-ghost" onClick={actions.reset}>Yeni tort yarat</button>
         </div>
       )}
