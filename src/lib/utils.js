@@ -39,16 +39,31 @@ export function splitText(t) {
   return [t.slice(0, best), t.slice(best + 1)];
 }
 
+export const MONTHS = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avqust', 'sentyabr', 'oktyabr', 'noyabr', 'dekabr'];
+export const WEEKDAYS = ['Bazar', 'Bazar ertəsi', 'Çərşənbə axşamı', 'Çərşənbə', 'Cümə axşamı', 'Cümə', 'Şənbə'];
+
+/** Yerli vaxtla YYYY-MM-DD (toISOString UTC-yə çevirdiyi üçün gecə saatlarında bir gün sürüşür). */
+export function toIso(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+export function fromIso(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+export function addDays(d, n) {
+  const r = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  r.setDate(r.getDate() + n);
+  return r;
+}
+
 export function minOrderDate() {
-  const t = new Date(); t.setDate(t.getDate() + 1);
-  return t.toISOString().slice(0, 10);
+  return toIso(addDays(new Date(), 1));
 }
 
 export function fmtDate(iso) {
   if (!iso) return '';
-  const months = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avqust', 'sentyabr', 'oktyabr', 'noyabr', 'dekabr'];
   const [y, m, d] = iso.split('-').map(Number);
-  return `${d} ${months[m - 1]} ${y}`;
+  return `${d} ${MONTHS[m - 1]} ${y}`;
 }
 
 export function frostName(hex) {

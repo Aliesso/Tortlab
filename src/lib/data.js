@@ -3,8 +3,8 @@
    ========================================================= */
 export const CONFIG = {
   brand: 'Tortlab',
-  whatsapp: '994501234567',        // ölkə kodu ilə, "+" və boşluq olmadan
-  email: 'sifaris@tortlab.az',     // sifarişlərin gələcəyi email
+  whatsapp: '994553398565',        // ölkə kodu ilə, "+" və boşluq olmadan
+  email: 'aliesso2218@gmail.com',     // sifarişlərin gələcəyi email
   currency: '₼',
   // true: email brauzerdən birbaşa FormSubmit.co ilə göndərilir (ilk dəfə təsdiq maili gəlir)
   // false: istifadəçinin mail proqramı açılır

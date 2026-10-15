@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { CONFIG, DATA, PRESETS, SCATTER } from '../lib/data.js';
-import { byId, describe, fmtDate, fmtKg, frostName, minOrderDate, money, priceLines, readImageFile, servings, total } from '../lib/utils.js';
+import { byId, describe, fmtDate, fmtKg, frostName, money, priceLines, readImageFile, servings, total } from '../lib/utils.js';
+import DateTimePicker from './DateTimePicker.jsx';
 import { defaultImage } from '../lib/useCakeState.js';
 import { makeShape } from '../cake/shapes.js';
 import { Group, Opt, Plus, Range, Swatch } from './ui.jsx';
@@ -345,12 +346,9 @@ function StepDetails({ state, update, errors, clearError }) {
       {field('name', 'Ad, soyad *', { autoComplete: 'name', placeholder: 'Adınız' })}
       {field('phone', 'Telefon *', { type: 'tel', autoComplete: 'tel', placeholder: '+994 50 123 45 67' })}
       {field('email', <>Email <span className="muted">(istəyə bağlı — surət sizə də gəlsin)</span></>, { type: 'email', autoComplete: 'email', placeholder: 'ad@mail.com' }, true)}
-      {field('date', 'Tarix *', { type: 'date', min: minOrderDate() })}
-      <div className="field">
-        <label htmlFor="f-time">Saat</label>
-        <select id="f-time" className="input" value={c.time} onChange={e => set('time', e.target.value)}>
-          {DATA.times.map(t => <option key={t}>{t}</option>)}
-        </select>
+      <div className="field span-2">
+        <DateTimePicker date={c.date} time={c.time} error={errors.date}
+          onDate={v => set('date', v)} onTime={v => set('time', v)} />
       </div>
       <div className="field span-2">
         <span className="label">Təhvil üsulu</span>
